@@ -2,15 +2,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputTask = document.getElementById('input-task')
   const taskList = document.getElementById('task-list');
   const addTaskButton = document.getElementById('add-task-button');
-  
+
+  // Conexão com o localStorage
+  function connectionTasks() {
+    return JSON.parse(localStorage.getItem('tasks')) || [];
+  }
+
+  // Save do localStorage
+  function saveTasks(tasks) {
+    localStorage.setItem('tasks', JSON.stringify(tasks))
+  }
+
+  // Atualizar a página com as novas informações contidas no localStorage
   function loadTasks() {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || []
+    let tasks = connectionTasks();
+    tasks = tasks.sort((a, b) => a.completed - b.completed)
     taskList.innerHTML = '';
     tasks.forEach((task) => {
       addTask(task);
     });
   }
   
+  // Adiciona os dados obtidos do localStorage na tela
   function addTask(task) {
     const taskDiv = document.createElement('div')
     taskDiv.classList.add('task')
@@ -20,11 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
     const checkTask = document.createElement('i')
     if (task.completed) {
-      checkTask.classList.add('bi','bi-check-circle-fill');
+      checkTask.classList.add('bi','bi-check-circle');
+      checkTask.classList.add('check')
     } else {
       checkTask.classList.add('bi', 'bi-circle')
     }
-    
+
     checkTask.style.cursor = 'pointer'
     checkTask.onclick = () => taskCompleted(task, taskDiv, checkTask)
   
@@ -33,17 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
   
     const deleteTask = document.createElement('i')
-    deleteTask.classList.add('bi', 'bi-trash-fill')
+    deleteTask.classList.add('bi', 'bi-x', 'x')
     deleteTask.onclick = () => removeTask(task)
   
     taskDiv.appendChild(checkTask)
     taskDiv.appendChild(taskText)
     taskDiv.appendChild(deleteTask)
     taskList.appendChild(taskDiv)
-  
-    console.log('entrou')
   }
   
+  // Cria uma nova tarefa
   function createTask () {
     const task = inputTask.value.trim()
   
@@ -51,9 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Tarefa não preenchida')
       return
     }
-    const newTask = JSON.parse(localStorage.getItem('tasks')) || []
+
+    let tasks = connectionTasks();
   
-    index = newTask.length ? newTask[newTask.length - 1].index + 1 : 1
+    index = tasks.length ? Math.max(...tasks.map(t => t.index)) + 1 : 1
   
     objectTask = {
       index: index,
@@ -61,32 +75,34 @@ document.addEventListener('DOMContentLoaded', () => {
       completed: false
     }
   
-    newTask.push(objectTask)
-    localStorage.setItem('tasks', JSON.stringify(newTask))
-    addTask(objectTask, newTask.length - 1)
+    tasks.push(objectTask)
+    saveTasks(tasks)
+    addTask(objectTask, tasks.length - 1)
+    loadTasks()
     inputTask.value = ''
   }
   
-  function taskCompleted(task, checkTask, taskDiv) {
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  // Marca as tarefas concluídas
+  function taskCompleted(task) {
+    let tasks = connectionTasks();
   
     tasks = tasks.map(storedTask => {
-      // debugger
+      
       if (storedTask.index === task.index) {
         storedTask.completed = !storedTask.completed;
       }
   
-      localStorage.setItem('tasks', JSON.stringify(tasks))
+      saveTasks(tasks)
       loadTasks()
     })}
   
+  // Remove as tarefas
   function removeTask(task) {
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || []
+    let tasks = connectionTasks();
     tasks = tasks.filter(newTasks => newTasks.index !== task.index)
-    localStorage.setItem('tasks', JSON.stringify(tasks))
+    saveTasks(tasks)
     loadTasks()
   }
-  
   
   addTaskButton.addEventListener('click', createTask);
   
