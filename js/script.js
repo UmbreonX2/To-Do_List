@@ -75,11 +75,10 @@ $(document).ready(function () {
   
     tasks.push(newTask)
     saveTasks(tasks)
-    addTask(newTask, tasks.length - 1)
+    addTask(newTask)
     loadTasks()
     $inputTask.val('')
   }
-  
   // Marca as tarefas concluídas
   function taskCompleted(task) {
     let tasks = connectionTasks();
@@ -103,6 +102,5 @@ $(document).ready(function () {
   }
   
   $addTaskButton.on('click', createTask);
-  
   loadTasks()
   })
